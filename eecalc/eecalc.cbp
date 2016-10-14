@@ -48,6 +48,7 @@
 		<Unit filename="lex.cc" />
 		<Unit filename="main.cpp" />
 		<Unit filename="parse.cc" />
+		<Unit filename="parseconstructor.cc" />
 		<Unit filename="structures.cpp" />
 		<Unit filename="structures.h" />
 		<Extensions>

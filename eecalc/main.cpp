@@ -5,6 +5,7 @@
 // Main program to run the Electrical Engineer's Calculator
 
 #include <complex>
+#include <math.h>
 #include <iostream>
 #include <sstream>
 #include <gtk/gtk.h>

@@ -3863,8 +3863,9 @@
 1457361942 /usr/include/gtk-2.0/gtk/gtktipsquery.h
 	<gtk/gtk.h>
 
-1476451092 source:/home/sam/Devel/Cpp/eecalc/main.cpp
+1476455829 source:/home/sam/Devel/Cpp/eecalc/main.cpp
 	<complex>
+	<math.h>
 	<iostream>
 	<sstream>
 	<gtk/gtk.h>
@@ -3883,7 +3884,7 @@
 1476157530 /home/sam/Devel/Cpp/eecalc/Scanner.h
 	"Scannerbase.h"
 
-1476408262 /home/sam/Devel/Cpp/eecalc/Scannerbase.h
+1476458307 /home/sam/Devel/Cpp/eecalc/Scannerbase.h
 	<limits>
 	<iostream>
 	<deque>
@@ -3891,7 +3892,7 @@
 	<vector>
 	<memory>
 
-1476408262 source:/home/sam/Devel/Cpp/eecalc/lex.cc
+1476458307 source:/home/sam/Devel/Cpp/eecalc/lex.cc
 	<iostream>
 	<fstream>
 	<sstream>
@@ -3903,20 +3904,24 @@
 	"Parserbase.h"
 	"Parser.ih"
 
-1476408340 /home/sam/Devel/Cpp/eecalc/Parserbase.h
+1476458442 /home/sam/Devel/Cpp/eecalc/Parserbase.h
 	<exception>
 	<vector>
 	<iostream>
-	<sstream>
 
-1476451412 /home/sam/Devel/Cpp/eecalc/Parser.h
+1476457428 /home/sam/Devel/Cpp/eecalc/Parser.h
 	"Parserbase.h"
 	"Scanner.h"
 	<sstream>
+	<math.h>
+	<complex>
 
 1476061876 /home/sam/Devel/Cpp/eecalc/Parser.ih
 	"Parser.h"
 
-1476451660 source:/home/sam/Devel/Cpp/eecalc/parse.cc
+1476454798 source:/home/sam/Devel/Cpp/eecalc/parse.cc
+	"Parser.ih"
+
+1476457720 source:/home/sam/Devel/Cpp/eecalc/parseconstructor.cc
 	"Parser.ih"
 

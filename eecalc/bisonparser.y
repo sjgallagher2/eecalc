@@ -2,7 +2,11 @@
 %scanner Scanner.h
 %scanner-token-function scanner.lex()
 %stype double
-%token IDENTIFIER CHAR NUMBER
+%token NUMBER
+
+%left '+' '-'
+%left '*' '/'
+%right '^'
 
 %%
 
@@ -15,108 +19,103 @@ startrule:
 tokenshow:
     token
     {
-        *outputstream << $1;
+        *output_stream << $1;
     }
 ;
 
 token:
-    IDENTIFIER
-    {
-        $$ = $1;
-    }
-|
     NUMBER
     {
-        $$ = std::stoi( scanner.matched() );
+        $$ = std::stof( scanner.matched() );
+    }
+|                                   //operators
+    token '^' token
+    {
+        $$ = pow( $1 , $3 );
     }
 |
-    CHAR
+    '-' token
     {
-        $$ = $1;
+        $$ = -1 * $2;
     }
 |
     token '+' token
     {
         $$ = $1 + $3;
     }
-;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-=====================================
-%stype double
-%token NUM
-%left '-' '+'
-%left '*' '/'
-%left NEG
-
-%%
-
-input:
-    //empty
 |
-    input line
-;
-
-line:
-    '\n'
-|
-    exp '\n'
+    token '-' token
     {
-        std::cout << $1 << '\n';
+        $$ = $1 - $3;
+    }
+|
+    token '*' token
+    {
+        $$ = $1 * $3;
+    }
+|
+    token '/' token
+    {
+        $$ = $1 / $3;
+    }
+|
+    token '|' '|' token
+    {
+        $$ = $1*$4/($1+$4);
+    }
+|
+    '[' token ']'
+    {
+        $$ = $2;
+    }
+|
+    '(' token ')'
+    {
+        $$ = $2;
+    }
+|                                   //metric pref
+    token 'M'
+    {
+        $$ = $1*pow10(6);
+    }
+|
+    token 'k'
+    {
+        $$ = $1*pow10(3);
+    }
+|
+    token 'm'
+    {
+        $$ = $1*pow10(-3);
+    }
+|
+    token 'u'
+    {
+        $$ = $1*pow10(-6);
+    }
+|
+    token 'n'
+    {
+        $$ = $1*pow10(-9);
+    }
+|
+    token 'p'
+    {
+        $$ = $1*pow10(-12);
+    }
+|                                   //trig
+    's' 'i' 'n' '(' token ')'
+    {
+        $$ = sin($5);
+    }
+|                                   //constants
+    'e'
+    {
+        $$ = 2.7182818284;
+    }
+|
+    'p' 'i'
+    {
+        $$ = 3.1415926535;
     }
 ;
-
-exp:
-        NUM
-        {
-            $$ = scanner.matched();
-        }
-|
-        exp '+' exp
-        {
-            $$ = $1 + $3;
-        }
-|
-        exp '-' exp
-        {
-            $$ = $1 - $3;
-        }
-|
-        exp '*' exp
-        {
-            $$ = $1 * $3;
-        }
-|
-        exp '/' exp
-        {
-            $$ = $1 / $3;
-        }
-|
-        '-' exp %prec NEG
-        {
-            $$ = -$2;
-        }
-|
-        '(' exp ')'
-        {
-            $$ = $2;
-        }
-;
-*/
