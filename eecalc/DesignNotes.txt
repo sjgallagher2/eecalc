@@ -1,0 +1,60 @@
+EECalc Design Notes
+Position: 566 x 271px
+Size: 790 x 598px
+Top bar size: 25px
+Size w/o top bar: 790 x 574px
+Background: 0xDCDCDC
+Text bar (at top) Size: 789 x 190px
+Button area Size: 789 x 385
+
+Desired buttons:
+-- Numbers 0-9 and dec (.)
+-- Backspace, ans, alt
+-- +, -, *, /, =
+-- ^, ^-1, ^2
+-- ( )
+-- Negation (-)
+-- E
+-- e^, ln
+-- Sqrt
+-- i, jw, s
+-- Conj
+-- sin, cos, tan, asin, acos, atan
+-- sinh, cosh, tanh
+-- variable store
+-- milli, micro, nano, pico
+-- phase
+-- magnitude
+-- admittance
+-- parallel
+-- vdiv
+-- imag
+-- real
+-- frac -> dec, Hz -> sec, Hz -> rad/s
+-- Deg -> rad
+-- X_L, X_C
+-- LC resonant freq
+-- RC Time Constant
+-- Function
+-- Graph
+-- Program
+Total buttons: 65
+
+Grid Size: 8x8
+
+Changes made to the Parser files:
+--Parser.h
+public: 
+	Parser(std::stringstream*, std::stringstream*);
+private: 
+	std::stringstream * output_stream;
+	
+--bisonparser.y
+	*output_stream << $1;
+
+--Parser.cc
+Parser::Parser(std::stringstream *inputstream, std::stringstream *outputstream)
+{
+    scanner.switchStreams(*inputstream, *outputstream);
+    output_stream = outputstream;
+}
