@@ -2,7 +2,7 @@
 %scanner Scanner.h
 %baseclass-preinclude <complex>
 %scanner-token-function scanner.lex()
-%stype std::complex<double>
+%stype double
 %token NUMBER
 
 %left '+' '-'
@@ -20,17 +20,14 @@ startrule:
 tokenshow:
     token
     {
-        double im = std::imag($1);
-        double re = std::real($1);
-
-        *output_stream << re;
+        *output_stream << $1;
     }
 ;
 
 token:
     NUMBER
     {
-        $$ = {std::stof( scanner.matched() ),0 };
+        $$ = std::stof(scanner.matched());
     }
 |                                   //operators
     token '^' token
@@ -155,12 +152,12 @@ token:
 |                                   //constants
     'e'
     {
-        $$ = {2.7182818284,0};
+        $$ = 2.7182818284;
     }
 |
     'p' 'i'
     {
-        $$ = {3.1415926535,0};
+        $$ = 3.1415926535;
     }
 ;
 
