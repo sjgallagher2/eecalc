@@ -42,19 +42,3 @@ Total buttons: 65
 
 Grid Size: 8x8
 
-Changes made to the Parser files:
---Parser.h
-public: 
-	Parser(std::stringstream*, std::stringstream*);
-private: 
-	std::stringstream * output_stream;
-	
---bisonparser.y
-	*output_stream << $1;
-
---Parser.cc
-Parser::Parser(std::stringstream *inputstream, std::stringstream *outputstream)
-{
-    scanner.switchStreams(*inputstream, *outputstream);
-    output_stream = outputstream;
-}

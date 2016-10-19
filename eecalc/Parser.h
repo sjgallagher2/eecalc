@@ -9,7 +9,6 @@
 #include "Scanner.h"
 #include <sstream>
 #include <math.h>
-#include <complex>
 
 #undef Parser
 class Parser: public ParserBase

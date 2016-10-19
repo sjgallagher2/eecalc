@@ -1,7 +1,8 @@
 //Bison file for the EE's calculator program
 %scanner Scanner.h
+%baseclass-preinclude <complex>
 %scanner-token-function scanner.lex()
-%stype double
+%stype std::complex<double>
 %token NUMBER
 
 %left '+' '-'
@@ -19,14 +20,17 @@ startrule:
 tokenshow:
     token
     {
-        *output_stream << $1;
+        double im = std::imag($1);
+        double re = std::real($1);
+
+        *output_stream << re;
     }
 ;
 
 token:
     NUMBER
     {
-        $$ = std::stof( scanner.matched() );
+        $$ = {std::stof( scanner.matched() ),0 };
     }
 |                                   //operators
     token '^' token
@@ -36,7 +40,7 @@ token:
 |
     '-' token
     {
-        $$ = -1 * $2;
+        $$ = -1.0*$2;
     }
 |
     token '+' token
@@ -103,19 +107,60 @@ token:
     {
         $$ = $1*pow10(-12);
     }
+|                                   //functions
+    's' 'q' 'r' 't' '(' token ')'
+    {
+        $$ = sqrt($6);
+    }
+|
+    'l' 'n' '(' token ')'
+    {
+        $$ = log($4);
+    }
 |                                   //trig
     's' 'i' 'n' '(' token ')'
     {
         $$ = sin($5);
     }
+|
+    'c' 'o' 's' '(' token ')'
+    {
+        $$ = cos($5);
+    }
+|
+    't' 'a' 'n' '(' token ')'
+    {
+        $$ = tan($5);
+    }
+|
+    'a' 's' 'i' 'n' '(' token ')'
+    {
+        $$ = asin($6);
+    }
+|
+    'a' 'c' 'o' 's' '(' token ')'
+    {
+        $$ = acos($6);
+    }
+|
+    'a' 't' 'a' 'n' '(' token ')'
+    {
+        $$ = atan($6);
+    }
+|
+    's' 'i' 'n' 'h' '(' token ')'
+    {
+        $$ = sinh($6);
+    }
 |                                   //constants
     'e'
     {
-        $$ = 2.7182818284;
+        $$ = {2.7182818284,0};
     }
 |
     'p' 'i'
     {
-        $$ = 3.1415926535;
+        $$ = {3.1415926535,0};
     }
 ;
+

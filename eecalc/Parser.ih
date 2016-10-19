@@ -17,18 +17,18 @@ inline int Parser::lex()
     return scanner.lex();
 }
 
-inline void Parser::print()         
+inline void Parser::print()
 {
     print__();           // displays tokens if --print was specified
 }
 
-inline void Parser::exceptionHandler__(std::exception const &exc)         
+inline void Parser::exceptionHandler__(std::exception const &exc)
 {
     throw;              // re-implement to handle exceptions thrown by actions
 }
 
 
-    // Add here includes that are only required for the compilation 
+    // Add here includes that are only required for the compilation
     // of Parser's sources.
 
 

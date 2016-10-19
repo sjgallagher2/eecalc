@@ -4,7 +4,6 @@
 //
 // Main program to run the Electrical Engineer's Calculator
 
-#include <complex>
 #include <math.h>
 #include <iostream>
 #include <sstream>
@@ -15,10 +14,10 @@
 #include "arith.h"
 
 #define EXIT_SUCCESS 0
-#define PI 3.1415926535
 
 typedef struct
 {
+    GtkWidget *window;
     GtkWidget *textarea;
     GtkTextBuffer *textbuffer;
     GtkWidget *entryinput;
@@ -197,7 +196,7 @@ static void button_divide_cb(GtkWidget *widget, gpointer data)
 }
 static void button_enter_cb(GtkWidget *widget, widgetstruct *data)
 {
-    //Parse text bar and execute, then update the history buffer
+    //Parse text bar
     const gchar* unparsed_text = gtk_entry_get_text(GTK_ENTRY(data->entryinput));
     gint unp_len = gtk_entry_get_text_length(GTK_ENTRY(data->entryinput));
 
@@ -209,10 +208,19 @@ static void button_enter_cb(GtkWidget *widget, widgetstruct *data)
     int res_len = result.tellp();
     const gchar* resultstring = result.str().c_str();
 
-    gtk_text_buffer_insert_at_cursor(GTK_TEXT_BUFFER(data->textbuffer),unparsed_text,unp_len);
-    gtk_text_buffer_insert_at_cursor(GTK_TEXT_BUFFER(data->textbuffer)," = ",3);
-    gtk_text_buffer_insert_at_cursor(GTK_TEXT_BUFFER(data->textbuffer),resultstring,res_len);
-    gtk_text_buffer_insert_at_cursor(GTK_TEXT_BUFFER(data->textbuffer),"\n\0",1);
+    //Update text buffer at the end
+    GtkTextIter *tempc;
+    gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(data->textbuffer), tempc);
+
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc,unparsed_text,unp_len);
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc," = ",3);
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc,resultstring,res_len);
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc,"\n\0",1);
+
+    //Scroll down
+    GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(data->window) );
+    gtk_adjustment_set_value(adj,gtk_adjustment_get_upper(adj));
+
 
     //Clear the entry box
     gtk_editable_delete_text(GTK_EDITABLE(data->entryinput),0,-1);
@@ -821,6 +829,7 @@ int main(int argv, char ** argc)
     gtk_text_view_set_editable(GTK_TEXT_VIEW(history_space) ,false);
 
     widgetstruct cbData;
+    cbData.window = text_scroll_container;
     cbData.textarea = history_space;
     cbData.textbuffer = history_buffer;
     cbData.entryinput = text_entry;
