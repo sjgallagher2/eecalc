@@ -16,6 +16,7 @@ Desired buttons:
 -- Negation (-)
 -- E
 -- e^, ln
+------log_10 [alt]
 -- Sqrt
 -- i, jw, s
 -- Conj
@@ -32,6 +33,8 @@ Desired buttons:
 -- real
 -- frac -> dec, Hz -> sec, Hz -> rad/s
 -- Deg -> rad
+-------- dB -> gain
+-------- dB
 -- X_L, X_C
 -- LC resonant freq
 -- RC Time Constant

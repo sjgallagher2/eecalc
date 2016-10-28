@@ -21,7 +21,18 @@ typedef struct
     GtkWidget *textarea;
     GtkTextBuffer *textbuffer;
     GtkWidget *entryinput;
+    std::stringstream *inputBuffer;
+    std::stringstream *outputBuffer;
+    Parser *p;
 }widgetstruct;
+
+/*
+TODO: Add db and dbV, cange buttons to ALT text when ALT is held
+Implement user variables (STORE button)
+
+BUGS: Possible seg faults for up/down history
+
+*/
 
 /*************************************************
  CALLBACK FUNCTIONS
@@ -196,34 +207,37 @@ static void button_divide_cb(GtkWidget *widget, gpointer data)
 }
 static void button_enter_cb(GtkWidget *widget, widgetstruct *data)
 {
+    GtkTextIter tempc;
+
     //Parse text bar
     const gchar* unparsed_text = gtk_entry_get_text(GTK_ENTRY(data->entryinput));
     gint unp_len = gtk_entry_get_text_length(GTK_ENTRY(data->entryinput));
 
-    std::stringstream expressions;
-    std::stringstream result;
-    expressions << unparsed_text;
-    Parser p(&expressions, &result);
-    p.parse();
-    int res_len = result.tellp();
-    const gchar* resultstring = result.str().c_str();
+    if(unp_len > 0)
+    {
+        (data->inputBuffer)->str(unparsed_text);
+        (data->outputBuffer)->str("");
+        data->p->setStreams(data->inputBuffer, data->outputBuffer);
+        data->p->parse();
 
-    //Update text buffer at the end
-    GtkTextIter *tempc;
-    gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(data->textbuffer), tempc);
+        int res_len = (data->outputBuffer)->tellp();
+        const gchar* resultstring = (data->outputBuffer)->str().c_str();
 
-    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc,unparsed_text,unp_len);
-    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc," = ",3);
-    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc,resultstring,res_len);
-    gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),tempc,"\n\0",1);
+        //Update text buffer at the end
+        gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(data->textbuffer), &tempc);
 
-    //Scroll down
-    GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(data->window) );
-    gtk_adjustment_set_value(adj,gtk_adjustment_get_upper(adj));
+        gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),&tempc,unparsed_text,unp_len);
+        gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),&tempc," = ",3);
+        gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),&tempc,resultstring,res_len);
+        gtk_text_buffer_insert(GTK_TEXT_BUFFER(data->textbuffer),&tempc,"\n\0",1);
 
+        //Scroll down
+        GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(data->window) );
+        gtk_adjustment_set_value(adj,gtk_adjustment_get_upper(adj));
 
-    //Clear the entry box
-    gtk_editable_delete_text(GTK_EDITABLE(data->entryinput),0,-1);
+        //Clear the entry box
+        gtk_editable_delete_text(GTK_EDITABLE(data->entryinput),0,-1);
+    }
 
 }
 static void button_clear_cb(GtkWidget *widget, gpointer data)
@@ -628,6 +642,106 @@ static void button_alt_cb(GtkWidget *widget, gpointer data)
     //Nothing here yet
 }
 
+static void text_entry_keypress_cb(GtkWidget *widget, GdkEventKey *event, widgetstruct *data)
+{
+    static int line = gtk_text_buffer_get_line_count(GTK_TEXT_BUFFER(data->textbuffer)); //Represents the 'history' line we're at
+    int lineMax = gtk_text_buffer_get_line_count(GTK_TEXT_BUFFER(data->textbuffer));
+    //Check for key presses in the text entry box
+    if(event->keyval == 0xff52) //Up key
+    {
+        //data->entryinput
+        //data->textbuffer
+        if(line > 1)
+        {
+            GtkTextIter startiter,enditer;
+            gtk_text_buffer_get_iter_at_line(GTK_TEXT_BUFFER(data->textbuffer),&startiter,line-2);
+            if(line < lineMax)
+            {
+                gtk_text_buffer_get_iter_at_line(GTK_TEXT_BUFFER(data->textbuffer),&enditer,line-1);
+                gtk_text_iter_backward_char(&enditer);
+            }
+            else
+            {
+                gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(data->textbuffer),&enditer);
+            }
+
+            gchar * linetext;
+            linetext = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(data->textbuffer),&startiter,&enditer,false);
+            int strpos = 0;
+            bool foundequals = false;
+            while(!foundequals)
+            {
+                if(linetext[strpos] == '=')
+                {
+                    linetext[strpos-1] = '\0'; //Cut off the string, accounting for the space
+                    foundequals = true;
+                }
+                else
+                {
+                    strpos++;
+                }
+            }
+            gtk_entry_set_text(GTK_ENTRY(data->entryinput),linetext);
+
+            line--;
+        }
+    }
+    else if(event->keyval == 0xff54) //Down key
+    {
+        //data->entryinput
+        //data->textbuffer
+        line++;
+        if(line > 1)
+        {
+            GtkTextIter startiter,enditer;
+            gtk_text_buffer_get_iter_at_line(GTK_TEXT_BUFFER(data->textbuffer),&startiter,line-2);
+            if(line < lineMax)
+            {
+                gtk_text_buffer_get_iter_at_line(GTK_TEXT_BUFFER(data->textbuffer),&enditer,line-1);
+                gtk_text_iter_backward_char(&enditer);
+            }
+            else
+            {
+                gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(data->textbuffer),&enditer);
+            }
+
+            gchar * linetext;
+            linetext = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(data->textbuffer),&startiter,&enditer,false);
+            int strpos = 0;
+            bool foundequals = false;
+            while(!foundequals)
+            {
+                if(linetext[strpos] == '=')
+                {
+                    linetext[strpos-1] = '\0'; //Cut off the string, accounting for the space
+                    foundequals = true;
+                }
+                else
+                {
+                    strpos++;
+                }
+            }
+            gtk_entry_set_text(GTK_ENTRY(data->entryinput),linetext);
+        }
+    }
+    else
+    {
+        line = lineMax; //Reset every time the user types something else
+    }
+}
+
+static void window_keypress_cb(GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+    //0xff08 - 0xffb9, 0xff53 right - 0xff51 left
+    if(event->keyval > 0xff08 && event->keyval < 0xffb9);
+    {
+        if(event->keyval != 0xff53 && event->keyval != 0xff51)
+        {
+            gtk_widget_grab_focus(GTK_WIDGET(data));
+            gtk_editable_set_position(GTK_EDITABLE(data),-1);
+        }
+    }
+}
 
 // MAIN() - ENTRY POINT
 int main(int argv, char ** argc)
@@ -729,6 +843,13 @@ int main(int argv, char ** argc)
     GtkWidget *history_space;
     GtkTextBuffer *history_buffer;
     GtkWidget *text_scroll_container;
+
+    std::stringstream expressions;
+    std::stringstream result;
+    expressions.str("");
+    result.str("");
+
+    Parser rparse;
 
     gtk_init(&argv, &argc);
 
@@ -833,6 +954,9 @@ int main(int argv, char ** argc)
     cbData.textarea = history_space;
     cbData.textbuffer = history_buffer;
     cbData.entryinput = text_entry;
+    cbData.inputBuffer = &expressions;
+    cbData.outputBuffer = &result;
+    cbData.p = &rparse;
 
     //Set up containers and boxes
     gtk_box_pack_end(GTK_BOX(box1),op_table,true,true,0);
@@ -1001,7 +1125,12 @@ int main(int argv, char ** argc)
     g_signal_connect(button_graph,"clicked",G_CALLBACK(button_graph_cb),text_entry);
     g_signal_connect(button_alt,"clicked",G_CALLBACK(button_alt_cb),text_entry);
 
+
+    g_signal_connect(text_entry,"key-release-event",G_CALLBACK(text_entry_keypress_cb),&cbData);
+    g_signal_connect(window, "key-release-event",G_CALLBACK(window_keypress_cb),text_entry);
+
     gtk_widget_show_all(window);
+    gtk_widget_grab_focus(GTK_WIDGET(text_entry));
     gtk_main();
 
     return EXIT_SUCCESS;

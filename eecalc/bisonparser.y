@@ -2,7 +2,7 @@
 %scanner Scanner.h
 %baseclass-preinclude <complex>
 %scanner-token-function scanner.lex()
-%stype double
+%stype std::complex<double>
 %token NUMBER
 
 %left '+' '-'
@@ -20,16 +20,28 @@ startrule:
 tokenshow:
     token
     {
-        *output_stream << $1;
+        if(std::imag($1) == 0)
+        {
+            *output_stream << std::real($1);
+        }
+        else
+        {
+            *output_stream << $1;
+        }
     }
 ;
 
 token:
     NUMBER
     {
-        $$ = std::stof(scanner.matched());
+        $$ = {std::stof(scanner.matched()),0};
     }
-|                                   //operators
+|
+    'j' token
+    {
+        $$ = {0,std::real($2)};
+    }
+|                                               //operators
     token '^' token
     {
         $$ = pow( $1 , $3 );
@@ -114,6 +126,46 @@ token:
     {
         $$ = log($4);
     }
+|
+    'm' 'a' 'g' '(' token ')'
+    {
+        $$ = std::norm($5);
+    }
+|
+    'p' 'h' 'a' 's' 'e' '(' token ')'
+    {
+        $$ = std::arg($7);
+    }
+|
+    'c' 'o' 'n' 'j' '(' token ')'
+    {
+        $$ = std::conj($6);
+    }
+|
+    'f' 't' 'o' 'w' '(' token ')'
+    {
+        $$ = {std::real($6)*2*3.1415926,0};
+    }
+|
+    'f' 't' 'o' 't' '(' token ')'
+    {
+        $$ = {1/std::real($6),0};
+    }
+|
+    'd' 'e' 'g' '(' token ')'
+    {
+        $$ = {std::real($5)*180/3.1415926,0};
+    }
+|
+    't' 'a' 'u' '(' token ',' token ')'
+    {
+        $$ = {std::real($5)*std::real($7),0};
+    }
+|
+    'L' 'C' '(' token ',' token ')'
+    {
+        $$ = {1/(2*3.1415926*sqrt(std::real($4)*std::real($6))),0};
+    }
 |                                   //trig
     's' 'i' 'n' '(' token ')'
     {
@@ -152,12 +204,12 @@ token:
 |                                   //constants
     'e'
     {
-        $$ = 2.7182818284;
+        $$ = {2.7182818284,0};
     }
 |
     'p' 'i'
     {
-        $$ = 3.1415926535;
+        $$ = {3.1415926535,0};
     }
 ;
 

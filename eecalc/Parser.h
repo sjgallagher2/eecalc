@@ -17,8 +17,10 @@ class Parser: public ParserBase
     Scanner scanner;
 
     public:
+        Parser();
         Parser(std::stringstream*, std::stringstream*);
         int parse();
+        void setStreams(std::stringstream*, std::stringstream*);
 
     private:
         void error(char const *msg);    // called on (syntax) errors
