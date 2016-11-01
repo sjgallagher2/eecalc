@@ -4,4 +4,4 @@
 [0-9]*[\.][0-9]*                    |
 [0-9]+                              return Parser::NUMBER;
 [\+\-\*\/\(\)\^\[\]\|]              return matched()[0];
-[[:alpha:]]                         return matched()[0];
+[[:alpha:]\,]                       return matched()[0];

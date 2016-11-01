@@ -240,12 +240,21 @@ static void button_enter_cb(GtkWidget *widget, widgetstruct *data)
     }
 
 }
-static void button_clear_cb(GtkWidget *widget, gpointer data)
+static void button_clear_cb(GtkWidget *widget, widgetstruct *data)
 {
-    gtk_editable_delete_text(GTK_EDITABLE(data),0,-1);
+    static GtkTextIter strt;
+    static GtkTextIter nd;
 
-    //Reselect the text bar
-    gtk_widget_grab_focus(GTK_WIDGET(data));
+    if(gtk_entry_get_text_length(GTK_ENTRY(data->entryinput)) == 0)
+    {
+        gtk_text_buffer_get_start_iter(data->textbuffer,&strt);
+        gtk_text_buffer_get_end_iter(data->textbuffer,&nd);
+        gtk_text_buffer_delete(data->textbuffer,&strt,&nd);
+    }
+    else
+    {
+        gtk_editable_delete_text(GTK_EDITABLE(data->entryinput),0,-1);
+    }
 }
 
 
@@ -533,7 +542,7 @@ static void button_tau_cb(GtkWidget *widget, gpointer data)
 {
     //Insert the number
     gint pos = gtk_editable_get_position(GTK_EDITABLE(data));
-    gtk_editable_insert_text(GTK_EDITABLE(data),"tau(",4,&pos);
+    gtk_editable_insert_text(GTK_EDITABLE(data),"fc(",4,&pos);
 
     //Reselect the text bar and move
     gtk_widget_grab_focus(GTK_WIDGET(data));
@@ -601,11 +610,11 @@ static void button_omega_cb(GtkWidget *widget, gpointer data)
     gtk_widget_grab_focus(GTK_WIDGET(data));
     gtk_editable_set_position(GTK_EDITABLE(data),pos);
 }
-static void button_s_cb(GtkWidget *widget, gpointer data)
+static void button_xc_cb(GtkWidget *widget, gpointer data)
 {
     //Insert the number
     gint pos = gtk_editable_get_position(GTK_EDITABLE(data));
-    gtk_editable_insert_text(GTK_EDITABLE(data),"s",1,&pos);
+    gtk_editable_insert_text(GTK_EDITABLE(data),"Xc(",3,&pos);
 
     //Reselect the text bar and move
     gtk_widget_grab_focus(GTK_WIDGET(data));
@@ -691,7 +700,7 @@ static void text_entry_keypress_cb(GtkWidget *widget, GdkEventKey *event, widget
         //data->entryinput
         //data->textbuffer
         line++;
-        if(line > 1)
+        if(line > 2)
         {
             GtkTextIter startiter,enditer;
             gtk_text_buffer_get_iter_at_line(GTK_TEXT_BUFFER(data->textbuffer),&startiter,line-2);
@@ -732,13 +741,16 @@ static void text_entry_keypress_cb(GtkWidget *widget, GdkEventKey *event, widget
 
 static void window_keypress_cb(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
+    gint cursor = gtk_editable_get_position(GTK_EDITABLE(data));
+
+
     //0xff08 - 0xffb9, 0xff53 right - 0xff51 left
     if(event->keyval > 0xff08 && event->keyval < 0xffb9);
     {
         if(event->keyval != 0xff53 && event->keyval != 0xff51)
         {
             gtk_widget_grab_focus(GTK_WIDGET(data));
-            gtk_editable_set_position(GTK_EDITABLE(data),-1);
+            gtk_editable_set_position(GTK_EDITABLE(data),cursor);
         }
     }
 }
@@ -811,11 +823,11 @@ int main(int argv, char ** argc)
     GtkWidget *button_f_to_w;
     GtkWidget *button_f_to_t;
     GtkWidget *button_rad_to_deg;
+    GtkWidget *button_xc;
 
     //Mathematical constants
     GtkWidget *button_j;
     GtkWidget *button_omega;
-    GtkWidget *button_s;
 
     //Functional buttons
     GtkWidget *button_var;
@@ -921,16 +933,16 @@ int main(int argv, char ** argc)
     button_imag = gtk_button_new_with_label("imag");
     button_real = gtk_button_new_with_label("real");
     button_frac = gtk_button_new_with_label("frac");
-    button_tau = gtk_button_new_with_label("t (R,C)");
+    button_tau = gtk_button_new_with_label("f_c (R,C)");
     button_lc_freq = gtk_button_new_with_label("w (L,C)");
     button_f_to_w = gtk_button_new_with_label("Freq -> w");
     button_f_to_t = gtk_button_new_with_label("Freq -> T");
     button_rad_to_deg = gtk_button_new_with_label("Rad/Deg");
+    button_xc = gtk_button_new_with_label("Xc(C,f)");
 
     //Math constants
     button_j = gtk_button_new_with_label("j");
     button_omega = gtk_button_new_with_label("w");
-    button_s = gtk_button_new_with_label("s");
 
     //Functional
     button_var = gtk_button_new_with_label("store");
@@ -1021,11 +1033,11 @@ int main(int argv, char ** argc)
     gtk_table_attach_defaults(GTK_TABLE(op_table),button_f_to_w,4,5,0,1);
     gtk_table_attach_defaults(GTK_TABLE(op_table),button_f_to_t,3,4,0,1);
     gtk_table_attach_defaults(GTK_TABLE(op_table),button_rad_to_deg,2,3,0,1);
+    gtk_table_attach_defaults(GTK_TABLE(op_table),button_xc,6,7,5,6);
 
     //Constants
     gtk_table_attach_defaults(GTK_TABLE(op_table),button_j,6,7,3,4);
     gtk_table_attach_defaults(GTK_TABLE(op_table),button_omega,6,7,4,5);
-    gtk_table_attach_defaults(GTK_TABLE(op_table),button_s,6,7,5,6);
 
     //Functional
     gtk_table_attach_defaults(GTK_TABLE(op_table),button_var,1,2,7,8);
@@ -1072,7 +1084,7 @@ int main(int argv, char ** argc)
     //Text editing
     g_signal_connect(button_ins,"toggled",G_CALLBACK(button_ins_cb),text_entry);
     g_signal_connect(button_del,"clicked",G_CALLBACK(button_del_cb),text_entry);
-    g_signal_connect(button_clear,"clicked",G_CALLBACK(button_clear_cb),text_entry);
+    g_signal_connect(button_clear,"clicked",G_CALLBACK(button_clear_cb),&cbData);
     g_signal_connect(button_left,"clicked",G_CALLBACK(button_left_cb),text_entry);
     g_signal_connect(button_right,"clicked",G_CALLBACK(button_right_cb),text_entry);
     g_signal_connect(button_up,"clicked",G_CALLBACK(button_up_cb),text_entry);
@@ -1116,7 +1128,7 @@ int main(int argv, char ** argc)
     //Math constants
     g_signal_connect(button_j,"clicked",G_CALLBACK(button_j_cb),text_entry);
     g_signal_connect(button_omega,"clicked",G_CALLBACK(button_omega_cb),text_entry);
-    g_signal_connect(button_s,"clicked",G_CALLBACK(button_s_cb),text_entry);
+    g_signal_connect(button_xc,"clicked",G_CALLBACK(button_xc_cb),text_entry);
 
     //Functional
     g_signal_connect(button_var,"clicked",G_CALLBACK(button_var_cb),text_entry);

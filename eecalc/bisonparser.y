@@ -157,14 +157,20 @@ token:
         $$ = {std::real($5)*180/3.1415926,0};
     }
 |
-    't' 'a' 'u' '(' token ',' token ')'
+    'f' 'c' '(' token ',' token ')'
     {
-        $$ = {std::real($5)*std::real($7),0};
+        $$ = {1.0/(2*3.1415926*std::real($4)*std::real($6)),0};
     }
 |
     'L' 'C' '(' token ',' token ')'
     {
         $$ = {1/(2*3.1415926*sqrt(std::real($4)*std::real($6))),0};
+    }
+|
+    'X' 'c' '(' token ',' token ')'
+    {
+        double omegaf = -1/(2*3.1415926);
+        $$ = {0,omegaf/(std::real($6)*std::real($4))};
     }
 |                                   //trig
     's' 'i' 'n' '(' token ')'
