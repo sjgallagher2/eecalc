@@ -1,0 +1,54 @@
+EECALC BUILD INSTRUCTION
+Sam Gallagher, May 2017
+
+To compile and build the EECalc, you need:
+	-> GTK 2.0
+	-> GLibs
+	-> Pango
+	-> Cairo
+	-> GDK PixBuf
+	-> ATK-1.0
+	-> FlexC++
+	-> BisonC++
+	-> C++11
+The FlexC++, BisonC++, and C++11 shouldn't be an issue. The rest is GTK related, and the required includes are given
+by the command:
+	`pkg-config --cflags gtk+-2.0`
+While libraries can be added with:
+	`pkg-config --libs gtk+-2.0`
+This second line MUST BE INCLUDED AT THE END OF THE LINKING COMMAND. For example:
+	g++ -o eecalc *.o `pkg-config --libs gtk+-2.0`
+Otherwise there will be a long list of GTK functions that didn't make it through the linker. It must go at the _end_
+for everything to work. The only other flag you MUST include, is the -std=c++11. This is _very important_ to make
+the EECalc compile. For compiling, as well, make sure the `pkg-config --cflags gtk+-2.0` line is in the includes. 
+The libs for GTK+ are not required.
+
+Example Makefile (included):
+
+CC=g++
+CFLAGS=-std=c++11 `pkg-config --cflags gtk+-2.0`
+LIBS=`pkg-config --libs gtk+-2.0`
+LDFLAGS=-lgtk -lgdk -lglib -lm
+DEBUG=-Wall -g
+LDFLAGS=`pkg-config --libs gtk+-2.0`
+SOURCES=$(wildcard *.cpp)
+OBJECTS=$(SOURCES:.cpp=.o)
+EXECUTABLE=eecalc
+
+all: $(SOURCES) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) -o eecalc $(LDFLAGS) $(OBJECTS) $(LIBS)
+
+.cpp.o:
+	$(CC) $(DEBUG) $(CFLAGS) -c $< -o $@
+
+.PHONY: clean
+clean:
+	rm -f $(OBJECTS) $(EXECUTABLE)
+
+For recreating the BisonC++ and FlexC++ files after you compile, you'll need to do the following. First, update the
+parsing files however you want. Then open the directory in the terminal and use:
+	bisonc++ bisonparser.y -p parse.cpp		For updating Bison (interpreting tokens)
+	flexc++ parser.lex -l lex.cpp			For updating Flex (tokenizer)
+	
